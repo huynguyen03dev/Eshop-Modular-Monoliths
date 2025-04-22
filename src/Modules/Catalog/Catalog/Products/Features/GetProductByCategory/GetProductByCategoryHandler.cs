@@ -6,7 +6,6 @@ public record GetProductByCategoryQuery(string Category)
 
 public record GetProductByCategoryResult(IEnumerable<ProductDto> Products);
 
-
 public class GetProductByCategoryHandler(CatalogDbContext dbContext)
     : IQueryHandler<GetProductByCategoryQuery, GetProductByCategoryResult> {
     public async Task<GetProductByCategoryResult> Handle(GetProductByCategoryQuery query, CancellationToken cancellationToken) {

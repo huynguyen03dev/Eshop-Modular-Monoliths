@@ -1,20 +1,24 @@
-﻿
-namespace Catalog.Products.Features.DeleteProduct;
+﻿namespace Catalog.Products.Features.DeleteProduct;
 
-public record DeleteProductCommand(ProductDto Product)
+public record DeleteProductCommand(Guid ProductId)
     : ICommand<DeleteProductResult>;
 
 public record DeleteProductResult(bool isSuccess);
 
+public class DeleteProductCommandValidator : AbstractValidator<DeleteProductCommand> {
+    public DeleteProductCommandValidator() {
+        RuleFor(x => x.ProductId).NotEmpty().WithMessage("Product ID is required.");
+    }
+}
 
 public class DeleteProductHandler(CatalogDbContext dbContext)
     : ICommandHandler<DeleteProductCommand, DeleteProductResult> {
     public async Task<DeleteProductResult> Handle(DeleteProductCommand command, CancellationToken cancellationToken) {
         var product = await dbContext.Products
-        .FindAsync([command.Product.Id], cancellationToken: cancellationToken);
+        .FindAsync([command.ProductId], cancellationToken: cancellationToken);
 
         if (product is null) {
-            throw new Exception($"Product now found : {command.Product.Id}");
+            throw new ProductNotFoundException(command.ProductId);
         }
 
         dbContext.Products.Remove(product);

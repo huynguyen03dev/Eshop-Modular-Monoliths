@@ -3,8 +3,15 @@
 public record UpdateProductCommand(ProductDto Product)
     : ICommand<UpdateProductResult>;
 
-public record UpdateProductResult(bool isSuccess);
+public record UpdateProductResult(bool IsSuccess);
 
+public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand> {
+    public UpdateProductCommandValidator() {
+        RuleFor(x => x.Product.Id).NotEmpty().WithMessage("Id is required");
+        RuleFor(x => x.Product.Name).NotEmpty().WithMessage("Name is required");
+        RuleFor(x => x.Product.Price).GreaterThan(0).WithMessage("Price must be greater than 0");
+    }
+}
 
 internal class UpdateProductHandler(CatalogDbContext dbContext)
     : ICommandHandler<UpdateProductCommand, UpdateProductResult> {
@@ -13,7 +20,7 @@ internal class UpdateProductHandler(CatalogDbContext dbContext)
             .FindAsync([command.Product.Id], cancellationToken: cancellationToken);
 
         if (product is null) {
-            throw new Exception($"Product now found : {command.Product.Id}");
+            throw new ProductNotFoundException(command.Product.Id);
         }
 
         UpdateProductWithNewValues(product, command.Product);
